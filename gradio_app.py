@@ -29,18 +29,53 @@ def process_input(audio_file_path,image_filepath):
     return speech_to_text_output,Ai_response,Ai_voice
 
 
-iface = gr.Interface(
-    fn=process_input,
-    inputs=[
-        gr.Audio(type="filepath", label="Record your voice"),
-        gr.Image(type="filepath")
-    ],
-    outputs=[
-        gr.Textbox(label="Speech to text", lines=2, max_lines=4),   # small box, no scroll
-        gr.Textbox(label="Response from Medibot", lines=10, max_lines=20),  # large box, expands with response
-        gr.Audio(type="filepath", label="MediBot Voice")
-    ],
-    title="Medibot (0.2) Voice and Image Input Interface"
-)
+with gr.Blocks(theme=gr.themes.Soft(primary_hue="cyan", secondary_hue="pink")) as iface:
+    # Centered title
+    gr.HTML(
+        """
+        <div style="text-align: center; padding: 10px 0;">
+            <h1>🩺🤖 MediBot 0.2</h1>
+            <h3>A smarter voice + vision medical assistant</h3>
+        </div>
+        <hr>
+        """
+    )
+
+    with gr.Row():
+        with gr.Column(scale=1):
+            audio_in = gr.Audio(type="filepath", label="🎤 Record your voice")
+            image_in = gr.Image(type="filepath", label="🖼️ Upload an image")
+
+        with gr.Column(scale=2):
+            speech_out = gr.Textbox(
+                label="📝 Speech to text", 
+                lines=2, 
+                max_lines=4,
+                placeholder="Your speech transcription will appear here..."
+            )
+            response_out = gr.Textbox(
+                label="💡 Response from MediBot", 
+                lines=12, 
+                max_lines=20,
+                placeholder="MediBot's medical insights will appear here..."
+            )
+            voice_out = gr.Audio(type="filepath", label="🔊 MediBot Voice", interactive=False)
+
+            # ✅ Submit button
+            submit_btn = gr.Button("🚀 Submit")
+
+    gr.Markdown(
+        """
+        ---
+        ⚡ Powered by **Groq** (Brain) | **Gradio** (UI) | **GTTS & ElevenLabs** (Voice)  
+        """
+    )
+
+    # Wire up the button to trigger the pipeline
+    submit_btn.click(
+        fn=process_input,
+        inputs=[audio_in, image_in],
+        outputs=[speech_out, response_out, voice_out]
+    )
 
 iface.launch(debug=True)
