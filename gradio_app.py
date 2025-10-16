@@ -1,12 +1,12 @@
-from brain import encoded_image,analyze_image
-from voice_input import record_audio,trancribe_audio
-from Ai_voice import text_to_speech,text_to_speech_elevenlabs
+from brain import encoded_image, analyze_image
+from voice_input import record_audio, trancribe_audio
+from Ai_voice import text_to_speech, text_to_speech_elevenlabs
 import gradio as gr
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-system_prompt="""You are a professional Doctor! What's in the image?Do you see any medical conditions or abnormalities? If so, please describe them in detail.
+system_prompt = """You are a professional Doctor! What's in the image?Do you see any medical conditions or abnormalities? If so, please describe them in detail.
 Also, provide possible diagnoses, treatment options, and recommendations for further medical evaluation if necessary.
 Make sure to use medical terminology and provide accurate information based on the visual content of the image.
 If the image does not contain any medical content, please state that no medical analysis is possible.
@@ -14,19 +14,42 @@ Please keep the response concise and relevant to the medical aspects of the imag
 make sure to use common language and avoid technical jargon.
 Keep your response concise and to the point.
 No preamble,Start your answer right away.
-
-
 """
 
-def process_input(audio_file_path,image_filepath):
-    speech_to_text_output=trancribe_audio(GROQ_API_KEY=os.getenv("GROQ_API_KEY"),audio_file_path=audio_file_path,stt_model="whisper-large-v3")
+# ✅ Safe wrapper for TTS with fallback
+def safe_tts(input_text, output_file="final.mp3"):
+    try:
+        # Try ElevenLabs first
+        return text_to_speech_elevenlabs(input_text, output_file)
+    except Exception as e:
+        print(f"⚠️ ElevenLabs failed, falling back to gTTS. Error: {e}")
+        return text_to_speech(input_text, output_file)
+
+
+def process_input(audio_file_path, image_filepath):
+    # Avoid sending empty audio
+    if not audio_file_path or os.path.getsize(audio_file_path) == 0:
+        return "No valid audio provided.", "Please record again.", None
+
+    speech_to_text_output = trancribe_audio(
+        GROQ_API_KEY=os.getenv("GROQ_API_KEY"),
+        audio_file_path=audio_file_path,
+        stt_model="whisper-large-v3"
+    )
+
     if image_filepath:
-        Ai_response=analyze_image(query=system_prompt+speech_to_text_output,encoded_image=encoded_image(image_filepath),model="meta-llama/llama-4-scout-17b-16e-instruct")
+        Ai_response = analyze_image(
+            query=system_prompt + speech_to_text_output,
+            encoded_image=encoded_image(image_filepath),
+            model="meta-llama/llama-4-scout-17b-16e-instruct"
+        )
     else:
-        Ai_response="Please provide an image for analysis."
-    
-    Ai_voice=text_to_speech_elevenlabs(Ai_response,"final.mp3")
-    return speech_to_text_output,Ai_response,Ai_voice
+        Ai_response = "Please provide an image for analysis."
+
+    # ✅ Use fallback-enabled TTS
+    Ai_voice = safe_tts(Ai_response, "final.mp3")
+
+    return speech_to_text_output, Ai_response, Ai_voice
 
 
 with gr.Blocks(theme=gr.themes.Soft(primary_hue="cyan", secondary_hue="pink")) as iface:
@@ -48,14 +71,14 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="cyan", secondary_hue="pink")) a
 
         with gr.Column(scale=2):
             speech_out = gr.Textbox(
-                label="📝 Speech to text", 
-                lines=2, 
+                label="📝 Speech to text",
+                lines=2,
                 max_lines=4,
                 placeholder="Your speech transcription will appear here..."
             )
             response_out = gr.Textbox(
-                label="💡 Response from MediBot", 
-                lines=12, 
+                label="💡 Response from MediBot",
+                lines=12,
                 max_lines=20,
                 placeholder="MediBot's medical insights will appear here..."
             )

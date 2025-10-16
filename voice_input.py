@@ -29,7 +29,7 @@ def record_audio(file_path="output.wav", duration=10, samplerate=44100, channels
 
 
 audio_file_path="output.wav"
-record_audio(file_path=audio_file_path, duration=5)
+# record_audio(file_path=audio_file_path, duration=5)
     # Or save as FLAC/OGG (compressed, but no ffmpeg required)
     # record_audio(file_path="output.flac", duration=5)
 

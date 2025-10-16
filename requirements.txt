@@ -1,0 +1,21 @@
+# Web/UI
+gradio==4.44.0
+fastapi==0.115.0
+uvicorn==0.31.1
+
+# Environment & Utilities
+python-dotenv==1.0.1
+requests==2.32.3
+logging==0.5.1.2
+
+# Audio Processing
+sounddevice==0.5.1
+soundfile==0.12.1
+gtts==2.5.3
+
+# AI / API Clients
+elevenlabs==1.6.0
+groq==0.4.0
+
+# Optional if you use NumPy internally
+numpy>=1.26.0
