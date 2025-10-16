@@ -101,4 +101,10 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="cyan", secondary_hue="pink")) a
         outputs=[speech_out, response_out, voice_out]
     )
 
-iface.launch(debug=True)
+if __name__ == "__main__":
+    iface.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.getenv("PORT", 7860)),
+        debug=True
+    )
+
